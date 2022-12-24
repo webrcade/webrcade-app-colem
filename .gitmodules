@@ -1,0 +1,4 @@
+[submodule "modules/wiicolem"]
+	path = modules/wiicolem
+	url = https://github.com/raz0red/wiicolem.git
+	branch = webrcade
