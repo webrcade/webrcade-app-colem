@@ -49,21 +49,34 @@ export class Controller extends Component {
     const { buttonRefs, descriptionKey } = this;
     const { controllerIndex, emulator, keyDescriptions, row, col, onFocusChanged, onSelect } = this.props;
 
-    let description = "";
-    if (row >= 0 && col >= 0) {
-      if (keyDescriptions) {
-        description = keyDescriptions[descriptionKey[row][col]]
-        if (!description) {
-          description = "";
-        } else {
-          const row = document.getElementById("controller-description-row");
-          row.classList.remove("description-fade-in");
-          setTimeout(() => {
-            row.classList.add("description-fade-in");
-          }, 50);
+    const updateDescription = (r, c) => {
+      setTimeout(() => {
+        const row = document.getElementById("controller-description-row");
+        if (!row) return;
+
+        let description = "";
+
+        if (r >= 0 && c >= 0) {
+          if (keyDescriptions) {
+            description = keyDescriptions[descriptionKey[r][c]]
+            if (!description) {
+              description = "";
+            } else {
+              if (row.innerHTML !== description) {
+                row.classList.remove("description-fade-in");
+                setTimeout(() => {
+                  row.classList.add("description-fade-in");
+                }, 50);
+              }
+            }
+          }
         }
-      }
+
+        row.innerHTML = description;
+      }, 0);
     }
+
+    updateDescription(row, col);
 
     setTimeout(() => {
       if (row >= 0 && col >= 0) {
@@ -101,6 +114,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[0][0]}
               onFocus={() => onFocusChanged(0, 0)}
               onClick={(e) => onClick(e, emulator.JST_1)}
+              onMouseEnter={() => updateDescription(0, 0)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -108,6 +123,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[0][1]}
               onFocus={() => onFocusChanged(0, 1)}
               onClick={(e) => onClick(e, emulator.JST_2)}
+              onMouseEnter={() => updateDescription(0, 1)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -115,6 +132,9 @@ export class Controller extends Component {
               buttonRef={buttonRefs[0][2]}
               onFocus={() => onFocusChanged(0, 2)}
               onClick={(e) => onClick(e, emulator.JST_3)}
+              onMouseEnter={() => updateDescription(0, 2)}
+              onMouseLeave={() => updateDescription(row, col)}
+
             />
           </div>
         </div>
@@ -124,6 +144,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[1][0]}
               onFocus={() => onFocusChanged(1, 0)}
               onClick={(e) => onClick(e, emulator.JST_4)}
+              onMouseEnter={() => updateDescription(1, 0)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -131,6 +153,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[1][1]}
               onFocus={() => onFocusChanged(1, 1)}
               onClick={(e) => onClick(e, emulator.JST_5)}
+              onMouseEnter={() => updateDescription(1, 1)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -138,6 +162,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[1][2]}
               onFocus={() => onFocusChanged(1, 2)}
               onClick={(e) => onClick(e, emulator.JST_6)}
+              onMouseEnter={() => updateDescription(1, 2)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
         </div>
@@ -147,6 +173,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[2][0]}
               onFocus={() => onFocusChanged(2, 0)}
               onClick={(e) => onClick(e, emulator.JST_7)}
+              onMouseEnter={() => updateDescription(2, 0)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -154,6 +182,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[2][1]}
               onFocus={() => onFocusChanged(2, 1)}
               onClick={(e) => onClick(e, emulator.JST_8)}
+              onMouseEnter={() => updateDescription(2, 1)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -161,6 +191,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[2][2]}
               onFocus={() => onFocusChanged(2, 2)}
               onClick={(e) => onClick(e, emulator.JST_9)}
+              onMouseEnter={() => updateDescription(2, 2)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
         </div>
@@ -170,6 +202,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[3][0]}
               onFocus={() => onFocusChanged(3, 0)}
               onClick={(e) => onClick(e, emulator.JST_STAR)}
+              onMouseEnter={() => updateDescription(3, 0)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -177,6 +211,8 @@ export class Controller extends Component {
               buttonRef={buttonRefs[3][1]}
               onFocus={() => onFocusChanged(3, 1)}
               onClick={(e) => onClick(e, emulator.JST_0)}
+              onMouseEnter={() => updateDescription(3, 1)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
           <div className="controller-row-button">
@@ -184,10 +220,12 @@ export class Controller extends Component {
               buttonRef={buttonRefs[3][2]}
               onFocus={() => onFocusChanged(3, 2)}
               onClick={(e) => onClick(e, emulator.JST_POUND)}
+              onMouseEnter={() => updateDescription(3, 2)}
+              onMouseLeave={() => updateDescription(row, col)}
             />
           </div>
         </div>
-        <div id="controller-description-row" className="controller-row controller-description-row">{description}</div>
+        <div id="controller-description-row" className="controller-row controller-description-row"></div>
       </div>
     );
   }
