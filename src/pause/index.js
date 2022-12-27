@@ -4,6 +4,7 @@ import { Component } from 'react';
 import { GamepadControlsTab, KeyboardControlsTab } from './controls';
 
 import {
+  ColecoVisionBackground,
   CustomPauseScreen,
   EditorScreen,
   GamepadWhiteImage,
@@ -12,7 +13,6 @@ import {
   Resources,
   SaveStatesEditor,
   SaveWhiteImage,
-  SnesBackground,
   TEXT_IDS,
 } from '@webrcade/app-common';
 
@@ -122,7 +122,7 @@ export class EmulatorPauseScreen extends Component {
         ) : null}
         {mode === ModeEnum.STATE ? (
           <SaveStatesEditor
-            emptyImageSrc={SnesBackground}
+            emptyImageSrc={ColecoVisionBackground}
             emulator={emulator}
             onClose={closeCallback}
             showStatusCallback={emulator.saveMessageCallback}

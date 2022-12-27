@@ -14,6 +14,7 @@ import {
   LOG,
   TEXT_IDS,
 } from '@webrcade/app-common';
+import { ControllersScreen } from './controllers';
 import { Emulator } from './emulator';
 import { EmulatorPauseScreen } from './pause';
 
@@ -21,6 +22,8 @@ import './App.scss';
 
 class App extends WebrcadeApp {
   emulator = null;
+
+  CONTROLLERS_MODE = "controllers";
 
   componentDidMount() {
     super.componentDidMount();
@@ -110,7 +113,7 @@ class App extends WebrcadeApp {
     try {
       await super.onPreExit();
       if (!this.isExitFromPause()) {
-        await this.emulator.saveState();
+        //await this.emulator.saveState();
       }
     } catch (e) {
       LOG.error(e);
@@ -143,6 +146,20 @@ class App extends WebrcadeApp {
     );
   }
 
+  renderControllersScreen() {
+    const { controllerIndex } = this.state;
+    const { CONTROLLERS_MODE, emulator } = this;
+
+    return (
+      <ControllersScreen
+        controllerIndex={controllerIndex}
+        onSelect={(key, keyCode) => {emulator.onKeypad(controllerIndex, key, keyCode)}}
+        closeCallback={() => { this.resume(CONTROLLERS_MODE) }}
+        emulator={emulator}
+      />
+    );
+  }
+
   renderCanvas() {
     return (
       <canvas
@@ -155,16 +172,38 @@ class App extends WebrcadeApp {
     );
   }
 
+  showControllers(index, resumeCallback) {
+    const { mode } = this.state;
+    const { CONTROLLERS_MODE } = this;
+
+    if (mode !== CONTROLLERS_MODE) {
+      this.setState({
+        mode: CONTROLLERS_MODE,
+        resumeCallback: resumeCallback,
+        controllerIndex: index
+      })
+      return true;
+    }
+    return false;
+  }
+
+  isControllersScreen() {
+    const { mode } = this.state;
+    const { CONTROLLERS_MODE } = this;
+    return mode === CONTROLLERS_MODE;
+  }
+
   render() {
     const { mode } = this.state;
-    const { ModeEnum } = this;
+    const { ModeEnum, CONTROLLERS_MODE } = this;
 
     return (
       <>
         {super.render()}
         {mode === ModeEnum.LOADING ? this.renderLoading() : null}
         {mode === ModeEnum.PAUSE ? this.renderPauseScreen() : null}
-        {mode === ModeEnum.LOADED || mode === ModeEnum.PAUSE
+        {mode === CONTROLLERS_MODE ? this.renderControllersScreen() : null}
+        {mode === ModeEnum.LOADED || mode === ModeEnum.PAUSE || mode === CONTROLLERS_MODE
           ? this.renderCanvas()
           : null}
       </>

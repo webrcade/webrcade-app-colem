@@ -1,0 +1,100 @@
+.controllers-screen {
+  position: absolute;
+  display: flex;
+  z-index: 51;
+  top: 0px;
+  right: 0px;
+  left: 0px;
+  bottom: 0px;
+  align-items: center;
+
+  &-inner {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    max-width: 1920px;
+    margin: 0 auto;
+    position: relative;
+
+    &-controllers {
+      display: flex;
+      flex-flow: row;
+      justify-content: space-between;
+    }
+  }
+}
+
+.controller {
+  display: flex;
+  flex-direction: column;
+  margin: 3rem;
+  background-repeat: no-repeat;
+  background-size: 15rem;
+  width: 15rem;
+  height: 95vh;
+
+  &-first-row {
+    margin-top: 15.2rem;
+  }
+
+  &-row {
+    display: flex;
+    flex-direction: row;
+    margin-left: 2.2rem;
+
+    &-button {
+      margin-top: .25rem;
+      margin-right: .2rem;
+    }
+  }
+}
+
+.controller-image-button {
+  // Fix issue on Android where iframe is blue on exit
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: .2rem;
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  opacity: .6;
+
+  &>div {
+    height: 4.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // &:focus:not(:hover) {
+  &:focus {
+    outline: none;
+    background-color: #292929;
+    transition: 0.4s;
+    opacity: .8;
+  }
+
+  @media (hover) {
+    &:hover {
+      outline: none;
+      background-color: #292929;
+      transition: 0.4s;
+      opacity: .8;
+    }
+
+    &:hover:focus {
+      opacity: .75;
+      transition: 0.4s;
+      background-color: #191919;
+    }
+  }
+
+  &:active {
+    outline: none;
+  }
+}
