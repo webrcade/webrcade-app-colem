@@ -15,6 +15,18 @@ import {
 
 const KEY_FLAG = 0x8000;
 const SPACE_BAR = KEY_FLAG | 1;
+const DIGIT_0 = KEY_FLAG | 2;
+const DIGIT_1 = KEY_FLAG | 3;
+const DIGIT_2 = KEY_FLAG | 4;
+const DIGIT_3 = KEY_FLAG | 5;
+const DIGIT_4 = KEY_FLAG | 6;
+const DIGIT_5 = KEY_FLAG | 7;
+const DIGIT_6 = KEY_FLAG | 8;
+const DIGIT_7 = KEY_FLAG | 9;
+const DIGIT_8 = KEY_FLAG | 10;
+const DIGIT_9 = KEY_FLAG | 11;
+const MINUS = KEY_FLAG | 12;
+const EQUAL = KEY_FLAG | 13;
 
 class ColecoKeyCodeToControlMapping extends KeyCodeToControlMapping {
   constructor() {
@@ -33,7 +45,19 @@ class ColecoKeyCodeToControlMapping extends KeyCodeToControlMapping {
       [KCODES.ENTER]: CIDS.START,
       [KCODES.ESCAPE]: CIDS.ESCAPE,
       // Direct keyboard mappings
-      [KCODES.SPACE_BAR]: SPACE_BAR
+      [KCODES.SPACE_BAR]: SPACE_BAR,
+      [KCODES.DIGIT_0]: DIGIT_0,
+      [KCODES.DIGIT_1]: DIGIT_1,
+      [KCODES.DIGIT_2]: DIGIT_2,
+      [KCODES.DIGIT_3]: DIGIT_3,
+      [KCODES.DIGIT_4]: DIGIT_4,
+      [KCODES.DIGIT_5]: DIGIT_5,
+      [KCODES.DIGIT_6]: DIGIT_6,
+      [KCODES.DIGIT_7]: DIGIT_7,
+      [KCODES.DIGIT_8]: DIGIT_8,
+      [KCODES.DIGIT_9]: DIGIT_9,
+      [KCODES.MINUS]: MINUS,
+      [KCODES.EQUAL]: EQUAL,
     });
   }
 }
@@ -150,7 +174,7 @@ export class Emulator extends AppWrapper {
 
     this.keypad[index] = key;
     this.keypadDown[index] = true;
-    this.keypadCount[index] = 15;
+    this.keypadCount[index] = 10;
   }
 
   pollControls() {
@@ -191,7 +215,7 @@ export class Emulator extends AppWrapper {
         }
 
         if (val) {
-          //console.log(i + ", " + val);
+          // console.log(i + ", " + val);
           keypadInput = true;
 
           if (i === 0) {
@@ -248,9 +272,34 @@ export class Emulator extends AppWrapper {
         if (controllers.isControlDown(i, CIDS.SELECT)) {
           input |= this.JST_1;
         }
-        // if (controllers.isControlDown(i, CIDS.START)) {
-        //   input |= JST_1;
-        // }
+
+        if (i === 0) {
+          if (keyToControlMapping.isControlDown(DIGIT_0)) {
+            input |= this.JST_0;
+          } else if (keyToControlMapping.isControlDown(DIGIT_1)) {
+            input |= this.JST_1;
+          } else if (keyToControlMapping.isControlDown(DIGIT_2)) {
+            input |= this.JST_2;
+          } else if (keyToControlMapping.isControlDown(DIGIT_3)) {
+            input |= this.JST_3;
+          } else if (keyToControlMapping.isControlDown(DIGIT_4)) {
+            input |= this.JST_4;
+          } else if (keyToControlMapping.isControlDown(DIGIT_5)) {
+            input |= this.JST_5;
+          } else if (keyToControlMapping.isControlDown(DIGIT_6)) {
+            input |= this.JST_6;
+          } else if (keyToControlMapping.isControlDown(DIGIT_7)) {
+            input |= this.JST_7;
+          } else if (keyToControlMapping.isControlDown(DIGIT_8)) {
+            input |= this.JST_8;
+          } else if (keyToControlMapping.isControlDown(DIGIT_9)) {
+            input |= this.JST_9;
+          } else if (keyToControlMapping.isControlDown(MINUS)) {
+            input |= this.JST_STAR;
+          } else if (keyToControlMapping.isControlDown(EQUAL)) {
+            input |= this.JST_POUND;
+          }
+        }
       }
 
       if (i === 0) {

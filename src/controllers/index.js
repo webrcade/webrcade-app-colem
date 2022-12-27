@@ -36,11 +36,34 @@ export class Controller extends Component {
       [React.createRef(), React.createRef(), React.createRef()],
       [React.createRef(), React.createRef(), React.createRef()]
     ];
+
+    this.descriptionKey = [
+      ["1", "2", "3"],
+      ["4", "5", "6"],
+      ["7", "8", "9"],
+      ["*", "0", "#"]
+    ];
   }
 
   render() {
-    const { buttonRefs } = this;
-    const { controllerIndex, emulator, row, col, onFocusChanged, onSelect } = this.props;
+    const { buttonRefs, descriptionKey } = this;
+    const { controllerIndex, emulator, keyDescriptions, row, col, onFocusChanged, onSelect } = this.props;
+
+    let description = "";
+    if (row >= 0 && col >= 0) {
+      if (keyDescriptions) {
+        description = keyDescriptions[descriptionKey[row][col]]
+        if (!description) {
+          description = "";
+        } else {
+          const row = document.getElementById("controller-description-row");
+          row.classList.remove("description-fade-in");
+          setTimeout(() => {
+            row.classList.add("description-fade-in");
+          }, 50);
+        }
+      }
+    }
 
     setTimeout(() => {
       if (row >= 0 && col >= 0) {
@@ -164,6 +187,7 @@ export class Controller extends Component {
             />
           </div>
         </div>
+        <div id="controller-description-row" className="controller-row controller-description-row">{description}</div>
       </div>
     );
   }
@@ -320,7 +344,7 @@ export class ControllersScreen extends Screen {
   render() {
     const { screenContext, screenStyles } = this;
     const { controllerIndex, row, col } = this.state;
-    const { emulator } = this.props;
+    const { emulator, keyDescriptions} = this.props;
 
     const onFocusChanged = (r, c) => {
       if (r >= 0 && c >= 0) {
@@ -333,6 +357,7 @@ export class ControllersScreen extends Screen {
     const controller = (
       <Controller
       emulator={emulator}
+      keyDescriptions={keyDescriptions}
       controllerIndex={controllerIndex}
       onSelect={(key) => this.onSelectFunc(key)}
       col={col}

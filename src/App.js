@@ -50,12 +50,12 @@ class App extends WebrcadeApp {
       if (!rom) throw new Error('A ROM file was not specified.');
       // const pal = appProps.pal !== undefined ? appProps.pal === true : null;
 
-      // Get controller in port #2
-      // let port2 = 0;
-      // const port2val = appProps.port2;
-      // if (port2val) {
-      //   port2 = parseInt(port2val);
-      // }
+
+      let keyDescriptions = appProps.keyDescriptions;
+      if (!keyDescriptions) {
+        keyDescriptions = {}
+      }
+      this.keyDescriptions = keyDescriptions;
 
       // Create the emulator
       if (this.emulator === null) {
@@ -148,13 +148,14 @@ class App extends WebrcadeApp {
 
   renderControllersScreen() {
     const { controllerIndex } = this.state;
-    const { CONTROLLERS_MODE, emulator } = this;
+    const { CONTROLLERS_MODE, emulator, keyDescriptions } = this;
 
     return (
       <ControllersScreen
         controllerIndex={controllerIndex}
         onSelect={(key, keyCode) => {emulator.onKeypad(controllerIndex, key, keyCode)}}
         closeCallback={() => { this.resume(CONTROLLERS_MODE) }}
+        keyDescriptions={keyDescriptions}
         emulator={emulator}
       />
     );

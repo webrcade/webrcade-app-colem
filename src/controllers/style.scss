@@ -32,10 +32,7 @@
   background-size: 15rem;
   width: 15rem;
   height: 95vh;
-
-  &-first-row {
-    margin-top: 15.2rem;
-  }
+  // border: 1px solid red;
 
   &-row {
     display: flex;
@@ -46,6 +43,23 @@
       margin-top: .25rem;
       margin-right: .2rem;
     }
+  }
+
+  &-first-row {
+    margin-top: 15.2rem;
+  }
+
+  &-description-row {
+    font-size: 1.8rem;
+    margin-top: 2.5rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+    text-overflow: ellipsis;
+    text-align: center;
+    opacity: 0;
   }
 }
 
@@ -98,3 +112,9 @@
     outline: none;
   }
 }
+
+.description-fade-in {
+  opacity: 1;
+  transition: opacity .35s ease-in;
+}
+
