@@ -13,6 +13,12 @@ import {
   KCODES,
 } from '@webrcade/app-common';
 
+const CV_SGM     = 0x00001000;  /* Super Game Module */
+const CV_EEPROM  = 0x00006000;  /* Serial EEPROMs:   */
+const CV_24C08   = 0x00002000;  /*   256-byte EEPROM */
+const CV_24C256  = 0x00004000;  /*   32kB EEPROM     */
+const CV_SRAM    = 0x00008000;  /* 2kB battery-backed SRAM */
+
 const KEY_FLAG = 0x8000;
 const SPACE_BAR = KEY_FLAG | 1;
 const DIGIT_0 = KEY_FLAG | 2;
@@ -452,6 +458,9 @@ export class Emulator extends AppWrapper {
 
       // Create display loop
       this.displayLoop = new DisplayLoop(/*isPal ? 50 :*/ 60, true, debug);
+
+      // Set options
+      Module._EmSetOpts(CV_SGM);
 
       // Start the emulator
       Module._EmStart();
