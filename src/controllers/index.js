@@ -47,7 +47,7 @@ export class Controller extends Component {
 
   render() {
     const { buttonRefs, descriptionKey } = this;
-    const { controllerIndex, emulator, keyDescriptions, row, col, onFocusChanged, onSelect } = this.props;
+    const { controllerIndex, emulator, descriptions, row, col, onFocusChanged, onSelect } = this.props;
 
     const updateDescription = (r, c) => {
       setTimeout(() => {
@@ -57,8 +57,8 @@ export class Controller extends Component {
         let description = "";
 
         if (r >= 0 && c >= 0) {
-          if (keyDescriptions) {
-            description = keyDescriptions[descriptionKey[r][c]]
+          if (descriptions) {
+            description = descriptions[descriptionKey[r][c]]
             if (!description) {
               description = "";
             } else {
@@ -382,7 +382,7 @@ export class ControllersScreen extends Screen {
   render() {
     const { screenContext, screenStyles } = this;
     const { controllerIndex, row, col } = this.state;
-    const { emulator, keyDescriptions} = this.props;
+    const { emulator, descriptions} = this.props;
 
     const onFocusChanged = (r, c) => {
       if (r >= 0 && c >= 0) {
@@ -395,7 +395,7 @@ export class ControllersScreen extends Screen {
     const controller = (
       <Controller
       emulator={emulator}
-      keyDescriptions={keyDescriptions}
+      descriptions={descriptions}
       controllerIndex={controllerIndex}
       onSelect={(key) => this.onSelectFunc(key)}
       col={col}

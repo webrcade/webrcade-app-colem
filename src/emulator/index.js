@@ -19,6 +19,27 @@ const CV_24C08   = 0x00002000;  /*   256-byte EEPROM */
 const CV_24C256  = 0x00004000;  /*   32kB EEPROM     */
 const CV_SRAM    = 0x00008000;  /* 2kB battery-backed SRAM */
 
+const JST_NONE      = 0x0000;
+const JST_KEYPAD    = 0x000F;
+const JST_UP        = 0x0100;
+const JST_RIGHT     = 0x0200;
+const JST_DOWN      = 0x0400;
+const JST_LEFT      = 0x0800;
+const JST_FIRER     = 0x0040;
+const JST_FIREL     = 0x4000;
+const JST_0         = 0x0005;
+const JST_1         = 0x0002;
+const JST_2         = 0x0008;
+const JST_3         = 0x0003;
+const JST_4         = 0x000D;
+const JST_5         = 0x000C;
+const JST_6         = 0x0001;
+const JST_7         = 0x000A;
+const JST_8         = 0x000E;
+const JST_9         = 0x0004;
+const JST_STAR      = 0x0006;
+const JST_POUND     = 0x0009;
+
 const KEY_FLAG = 0x8000;
 const SPACE_BAR = KEY_FLAG | 1;
 const DIGIT_0 = KEY_FLAG | 2;
@@ -33,6 +54,34 @@ const DIGIT_8 = KEY_FLAG | 10;
 const DIGIT_9 = KEY_FLAG | 11;
 const MINUS = KEY_FLAG | 12;
 const EQUAL = KEY_FLAG | 13;
+
+const BUTTONS = [
+  {button: "a", cid: CIDS.A},
+  {button: "b", cid: CIDS.B},
+  {button: "x", cid: CIDS.X},
+  {button: "y", cid: CIDS.Y},
+  {button: "lb", cid: CIDS.LBUMP},
+  {button: "rb", cid: CIDS.RBUMP},
+  {button: "lt", cid: CIDS.LTRIG},
+  {button: "rt", cid: CIDS.RTRIG},
+];
+
+const INPUTS = {
+  "0": JST_0,
+  "1": JST_1,
+  "2": JST_2,
+  "3": JST_3,
+  "4": JST_4,
+  "5": JST_5,
+  "6": JST_6,
+  "7": JST_7,
+  "8": JST_8,
+  "9": JST_9,
+  "*": JST_STAR,
+  "#": JST_POUND,
+  "firel": JST_FIREL,
+  "firer": JST_FIRER
+}
 
 class ColecoKeyCodeToControlMapping extends KeyCodeToControlMapping {
   constructor() {
@@ -84,28 +133,38 @@ export class Emulator extends AppWrapper {
     this.keypad = [0, 0];
     this.keypadCount = [0, 0];
     this.keypadDown = [false, false];
+
+    // Set defaults if applicable
+    if (Object.keys(app.mappings) === 0) {
+      this.mappings = {
+        "a": "firel",
+        "b": "firer"
+      }
+    } else {
+      this.mappings = app.mappings;
+    }
   }
 
-  JST_NONE      = 0x0000;
-  JST_KEYPAD    = 0x000F;
-  JST_UP        = 0x0100;
-  JST_RIGHT     = 0x0200;
-  JST_DOWN      = 0x0400;
-  JST_LEFT      = 0x0800;
-  JST_FIRER     = 0x0040;
-  JST_FIREL     = 0x4000;
-  JST_0         = 0x0005;
-  JST_1         = 0x0002;
-  JST_2         = 0x0008;
-  JST_3         = 0x0003;
-  JST_4         = 0x000D;
-  JST_5         = 0x000C;
-  JST_6         = 0x0001;
-  JST_7         = 0x000A;
-  JST_8         = 0x000E;
-  JST_9         = 0x0004;
-  JST_STAR      = 0x0006;
-  JST_POUND     = 0x0009;
+  JST_NONE      = JST_NONE;
+  JST_KEYPAD    = JST_KEYPAD;
+  JST_UP        = JST_UP;
+  JST_RIGHT     = JST_RIGHT;
+  JST_DOWN      = JST_DOWN;
+  JST_LEFT      = JST_LEFT;
+  JST_FIRER     = JST_FIRER;
+  JST_FIREL     = JST_FIREL;
+  JST_0         = JST_0;
+  JST_1         = JST_1;
+  JST_2         = JST_2;
+  JST_3         = JST_3;
+  JST_4         = JST_4;
+  JST_5         = JST_5;
+  JST_6         = JST_6;
+  JST_7         = JST_7;
+  JST_8         = JST_8;
+  JST_9         = JST_9;
+  JST_STAR      = JST_STAR;
+  JST_POUND     = JST_POUND;
 
   createControllers() {
     this.keyToControlMapping = new ColecoKeyCodeToControlMapping();
@@ -184,7 +243,7 @@ export class Emulator extends AppWrapper {
   }
 
   pollControls() {
-    const { colemModule, controllers, keyToControlMapping } = this;
+    const { colemModule, controllers, keyToControlMapping, mappings } = this;
 
     controllers.poll();
 
@@ -194,9 +253,8 @@ export class Emulator extends AppWrapper {
 
     for (let i = 0; i < 2; i++) {
       let input = 0;
-
-
       let keyboardPressed = false;
+
       if (i === 0 && (
           keyToControlMapping.isControlDown(SPACE_BAR) ||
           controllers.isControlDown(i, CIDS.START))) {
@@ -252,58 +310,52 @@ export class Emulator extends AppWrapper {
         }
 
         if (controllers.isControlDown(i, CIDS.UP)) {
-          input |= this.JST_UP;
+          input |= JST_UP;
         } else if (controllers.isControlDown(i, CIDS.DOWN)) {
-          input |= this.JST_DOWN;
+          input |= JST_DOWN;
         }
 
         if (controllers.isControlDown(i, CIDS.RIGHT)) {
-          input |= this.JST_RIGHT;
+          input |= JST_RIGHT;
         } else if (controllers.isControlDown(i, CIDS.LEFT)) {
-          input |= this.JST_LEFT;
+          input |= JST_LEFT;
         }
 
-        if (
-          controllers.isControlDown(i, CIDS.B) ||
-          controllers.isControlDown(i, CIDS.X)
-        ) {
-          input |= this.JST_FIRER;
-        }
-        if (
-          controllers.isControlDown(i, CIDS.A) ||
-          controllers.isControlDown(i, CIDS.Y)
-        ) {
-          input |= this.JST_FIREL;
-        }
-        if (controllers.isControlDown(i, CIDS.SELECT)) {
-          input |= this.JST_1;
+        for (let b = 0; b < BUTTONS.length; b++) {
+          const button = BUTTONS[b];
+          if (controllers.isControlDown(i, button.cid)) {
+            const mapping = mappings[button.button];
+            if (mapping) {
+              input |= INPUTS[mapping];
+            }
+          }
         }
 
         if (i === 0) {
           if (keyToControlMapping.isControlDown(DIGIT_0)) {
-            input |= this.JST_0;
+            input |= JST_0;
           } else if (keyToControlMapping.isControlDown(DIGIT_1)) {
-            input |= this.JST_1;
+            input |= JST_1;
           } else if (keyToControlMapping.isControlDown(DIGIT_2)) {
-            input |= this.JST_2;
+            input |= JST_2;
           } else if (keyToControlMapping.isControlDown(DIGIT_3)) {
-            input |= this.JST_3;
+            input |= JST_3;
           } else if (keyToControlMapping.isControlDown(DIGIT_4)) {
-            input |= this.JST_4;
+            input |= JST_4;
           } else if (keyToControlMapping.isControlDown(DIGIT_5)) {
-            input |= this.JST_5;
+            input |= JST_5;
           } else if (keyToControlMapping.isControlDown(DIGIT_6)) {
-            input |= this.JST_6;
+            input |= JST_6;
           } else if (keyToControlMapping.isControlDown(DIGIT_7)) {
-            input |= this.JST_7;
+            input |= JST_7;
           } else if (keyToControlMapping.isControlDown(DIGIT_8)) {
-            input |= this.JST_8;
+            input |= JST_8;
           } else if (keyToControlMapping.isControlDown(DIGIT_9)) {
-            input |= this.JST_9;
+            input |= JST_9;
           } else if (keyToControlMapping.isControlDown(MINUS)) {
-            input |= this.JST_STAR;
+            input |= JST_STAR;
           } else if (keyToControlMapping.isControlDown(EQUAL)) {
-            input |= this.JST_POUND;
+            input |= JST_POUND;
           }
         }
       }
@@ -544,3 +596,4 @@ export class Emulator extends AppWrapper {
     this.context.putImageData(image, 0, 0);
   }
 }
+
