@@ -13,11 +13,18 @@ import {
   KCODES,
 } from '@webrcade/app-common';
 
+const CONTROLS_STANDARD = 0;
+const CONTROLS_SUPER_ACTION = 1;
+const CONTROLS_DRIVING = 2;
+const CONTROLS_ROLLER = 3;
+
 const CV_SGM     = 0x00001000;  /* Super Game Module */
 const CV_EEPROM  = 0x00006000;  /* Serial EEPROMs:   */
 const CV_24C08   = 0x00002000;  /*   256-byte EEPROM */
 const CV_24C256  = 0x00004000;  /*   32kB EEPROM     */
 const CV_SRAM    = 0x00008000;  /* 2kB battery-backed SRAM */
+const CV_SPINNER1X = 0x00000020;
+const CV_SPINNER2Y = 0x00000100;
 
 const JST_NONE      = 0x0000;
 const JST_KEYPAD    = 0x000F;
@@ -39,6 +46,12 @@ const JST_8         = 0x000E;
 const JST_9         = 0x0004;
 const JST_STAR      = 0x0006;
 const JST_POUND     = 0x0009;
+const JST_RED       = JST_FIRER;
+const JST_YELLOW    = JST_FIREL;
+const JST_PURPLE    = 0x0007;
+const JST_BLUE      = 0x000B;
+const JST_2P_FIRER  = 0x00400000;
+const JST_2P_FIREL  = 0x40000000;
 
 const KEY_FLAG = 0x8000;
 const SPACE_BAR = KEY_FLAG | 1;
@@ -80,7 +93,11 @@ const INPUTS = {
   "*": JST_STAR,
   "#": JST_POUND,
   "firel": JST_FIREL,
-  "firer": JST_FIRER
+  "firer": JST_FIRER,
+  "firel2": JST_2P_FIREL,
+  "firer2": JST_2P_FIRER,
+  "blue": JST_BLUE,
+  "purple": JST_PURPLE
 }
 
 class ColecoKeyCodeToControlMapping extends KeyCodeToControlMapping {
@@ -134,15 +151,36 @@ export class Emulator extends AppWrapper {
     this.keypadCount = [0, 0];
     this.keypadDown = [false, false];
 
-    // Set defaults if applicable
-    if (Object.keys(app.mappings) === 0) {
-      this.mappings = {
-        "a": "firel",
-        "b": "firer"
-      }
-    } else {
-      this.mappings = app.mappings;
+    this.controlsMode = this.getProps().controlsMode;
+    if (this.controlsMode === undefined) {
+      this.controlsMode = CONTROLS_STANDARD;
     }
+
+    // Set defaults if applicable
+    if (Object.keys(app.mappings).length === 0) {
+      if (this.controlsMode === CONTROLS_ROLLER) {
+        this.mappings = {
+          "a": "firel2",
+          "b": "firer2",
+          "x": "firel",
+          "y": "firer"
+        }
+      } else if (this.controlsMode === CONTROLS_SUPER_ACTION) {
+        this.mappings = {
+          "a": "firel",
+          "b": "firer",
+          "x": "blue",
+          "y": "purple"
+        }
+      } else {
+        this.mappings = {
+          "a": "firel",
+          "b": "firer"
+        }
+      }
+   } else {
+     this.mappings = app.mappings;
+   }
   }
 
   JST_NONE      = JST_NONE;
@@ -165,6 +203,12 @@ export class Emulator extends AppWrapper {
   JST_9         = JST_9;
   JST_STAR      = JST_STAR;
   JST_POUND     = JST_POUND;
+  JST_BLUE      = JST_BLUE;
+  JST_PURPLE    = JST_PURPLE;
+  JST_2P_FIRER  = JST_2P_FIRER;
+  JST_2P_FIREL  = JST_2P_FIREL;
+  JST_RED       = JST_RED;
+  JST_YELLOW    = JST_YELLOW;
 
   createControllers() {
     this.keyToControlMapping = new ColecoKeyCodeToControlMapping();
@@ -243,15 +287,25 @@ export class Emulator extends AppWrapper {
   }
 
   pollControls() {
-    const { colemModule, controllers, keyToControlMapping, mappings } = this;
+    const { colemModule, controllers, controlsMode, keyToControlMapping, mappings } = this;
 
     controllers.poll();
 
     // 8   4    2 1 8 4 2 1 8   4    2 1 8  4  2  1
     // x.FIRE-B.x.x.L.D.R.U.x.FIRE-A.x.x.N3.N2.N1.N0
     let combined = 0;
+    let axisX1 = 0;
+    let axisY1 = 0;
+    let axisX2 = 0;
+    let axisY2 = 0;
 
     for (let i = 0; i < 2; i++) {
+
+      if (i > 0 && controlsMode === CONTROLS_DRIVING) {
+        // Only use controller 1 for driving
+        continue;
+      }
+
       let input = 0;
       let keyboardPressed = false;
 
@@ -281,12 +335,7 @@ export class Emulator extends AppWrapper {
         if (val) {
           // console.log(i + ", " + val);
           keypadInput = true;
-
-          if (i === 0) {
-            combined |= val;
-          } else {
-            combined = (combined | (val << 16));
-          }
+          input = val;
         }
       }
 
@@ -331,6 +380,23 @@ export class Emulator extends AppWrapper {
           }
         }
 
+        const DEAD = 0.20;
+        const MAXX = 512;
+        const MAXY = 128;
+
+        let axisX = (controllers.getAxisValue(i, 0, true) * MAXX) | 0;
+        if (axisX < (MAXX * DEAD) && axisX > -(MAXX * DEAD)) axisX = 0;
+        let axisY = (controllers.getAxisValue(i, 0, false) * MAXY) | 0;
+        if (axisY < (MAXY * DEAD) && axisY > -(MAXY * DEAD)) axisY = 0;
+
+        if (i === 0) {
+          axisX1 = axisX;
+          axisY1 = axisY;
+        } else {
+          axisX2 = axisX;
+          axisY2 = axisY;
+        }
+
         if (i === 0) {
           if (keyToControlMapping.isControlDown(DIGIT_0)) {
             input |= JST_0;
@@ -361,13 +427,22 @@ export class Emulator extends AppWrapper {
       }
 
       if (i === 0) {
-        combined |= input;
+        if (controlsMode === CONTROLS_STANDARD || controlsMode === CONTROLS_SUPER_ACTION) {
+          combined |= input;
+        } else if (controlsMode === CONTROLS_DRIVING || controlsMode === CONTROLS_ROLLER) {
+          // 8   4    2 1 8 4 2 1 8   4    2 1 8  4  2  1
+          // x.FIRE-B.x.x.L.D.R.U.x.FIRE-A.x.x.N3.N2.N1.N0
+          combined = (((input & 0x0F0F) << 16) | (input & 0x4040) |
+            (input & 0x40400000));
+        }
       } else {
-        combined = (combined | (input << 16));
+        if (controlsMode === CONTROLS_STANDARD || controlsMode === CONTROLS_SUPER_ACTION) {
+          combined = (combined | (input << 16));
+        }
       }
     }
 
-    colemModule._EmSetInput(combined);
+    colemModule._EmSetInput(combined, axisX1, axisY1, axisX2, axisY2);
   }
 
   loadEmscriptenModule() {
@@ -466,7 +541,7 @@ export class Emulator extends AppWrapper {
   }
 
   async onStart(canvas) {
-    const { app, debug, romBytes } = this;
+    const { app, controlsMode, debug, romBytes } = this;
     const Module = this.colemModule;
     const FS = Module.FS;
 
@@ -512,7 +587,14 @@ export class Emulator extends AppWrapper {
       this.displayLoop = new DisplayLoop(/*isPal ? 50 :*/ 60, true, debug);
 
       // Set options
-      Module._EmSetOpts(CV_SGM);
+      let opts = CV_SGM;
+      if (controlsMode === CONTROLS_DRIVING || controlsMode === CONTROLS_ROLLER) {
+        opts |= CV_SPINNER1X;
+      }
+      if (controlsMode === CONTROLS_ROLLER) {
+        opts |= CV_SPINNER2Y;
+      }
+      Module._EmSetOpts(opts);
 
       // Start the emulator
       Module._EmStart();
