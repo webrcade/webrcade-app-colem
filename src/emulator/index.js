@@ -19,10 +19,10 @@ const CONTROLS_DRIVING = 2;
 const CONTROLS_ROLLER = 3;
 
 const CV_SGM     = 0x00001000;  /* Super Game Module */
-const CV_EEPROM  = 0x00006000;  /* Serial EEPROMs:   */
-const CV_24C08   = 0x00002000;  /*   256-byte EEPROM */
-const CV_24C256  = 0x00004000;  /*   32kB EEPROM     */
-const CV_SRAM    = 0x00008000;  /* 2kB battery-backed SRAM */
+// const CV_EEPROM  = 0x00006000;  /* Serial EEPROMs:   */
+// const CV_24C08   = 0x00002000;  /*   256-byte EEPROM */
+// const CV_24C256  = 0x00004000;  /*   32kB EEPROM     */
+// const CV_SRAM    = 0x00008000;  /* 2kB battery-backed SRAM */
 const CV_SPINNER1X = 0x00000020;
 const CV_SPINNER2Y = 0x00000100;
 
@@ -169,8 +169,8 @@ export class Emulator extends AppWrapper {
         this.mappings = {
           "a": "firel",
           "b": "firer",
-          "x": "blue",
-          "y": "purple"
+          "x": "purple",
+          "y": "blue"
         }
       } else {
         this.mappings = {
@@ -294,10 +294,8 @@ export class Emulator extends AppWrapper {
     // 8   4    2 1 8 4 2 1 8   4    2 1 8  4  2  1
     // x.FIRE-B.x.x.L.D.R.U.x.FIRE-A.x.x.N3.N2.N1.N0
     let combined = 0;
-    let axisX1 = 0;
-    let axisY1 = 0;
-    let axisX2 = 0;
-    let axisY2 = 0;
+    let axisX = 0;
+    let axisY = 0;
 
     for (let i = 0; i < 2; i++) {
 
@@ -312,7 +310,6 @@ export class Emulator extends AppWrapper {
       if (i === 0 && (
           keyToControlMapping.isControlDown(SPACE_BAR) ||
           controllers.isControlDown(i, CIDS.START))) {
-        //console.log('space bar!')
         keyboardPressed = true;
       }
 
@@ -333,7 +330,6 @@ export class Emulator extends AppWrapper {
         }
 
         if (val) {
-          // console.log(i + ", " + val);
           keypadInput = true;
           input = val;
         }
@@ -358,15 +354,16 @@ export class Emulator extends AppWrapper {
           }
         }
 
-        if (controllers.isControlDown(i, CIDS.UP)) {
+        const analogToDigital = controlsMode !== CONTROLS_DRIVING;
+        if (controllers.isControlDown(i, CIDS.UP, analogToDigital)) {
           input |= JST_UP;
-        } else if (controllers.isControlDown(i, CIDS.DOWN)) {
+        } else if (controllers.isControlDown(i, CIDS.DOWN, analogToDigital)) {
           input |= JST_DOWN;
         }
 
-        if (controllers.isControlDown(i, CIDS.RIGHT)) {
+        if (controllers.isControlDown(i, CIDS.RIGHT, analogToDigital)) {
           input |= JST_RIGHT;
-        } else if (controllers.isControlDown(i, CIDS.LEFT)) {
+        } else if (controllers.isControlDown(i, CIDS.LEFT, analogToDigital)) {
           input |= JST_LEFT;
         }
 
@@ -380,21 +377,26 @@ export class Emulator extends AppWrapper {
           }
         }
 
-        const DEAD = 0.20;
+        let DEAD = 0.20;
         const MAXX = 512;
         const MAXY = 128;
 
-        let axisX = (controllers.getAxisValue(i, 0, true) * MAXX) | 0;
-        if (axisX < (MAXX * DEAD) && axisX > -(MAXX * DEAD)) axisX = 0;
-        let axisY = (controllers.getAxisValue(i, 0, false) * MAXY) | 0;
-        if (axisY < (MAXY * DEAD) && axisY > -(MAXY * DEAD)) axisY = 0;
-
-        if (i === 0) {
-          axisX1 = axisX;
-          axisY1 = axisY;
+        if (controlsMode === CONTROLS_SUPER_ACTION) {
+          if (i === 0) {
+            axisX = (controllers.getAxisValue(i, 1, true) * MAXX) | 0;
+            if (axisX < (MAXX * DEAD) && axisX > -(MAXX * DEAD)) axisX = 0;
+            axisX *= -1;
+          } else {
+            axisY = (controllers.getAxisValue(i, 1, true) * MAXX) | 0;
+            if (axisY < (MAXX * DEAD) && axisY > -(MAXX * DEAD)) axisY = 0;
+          }
         } else {
-          axisX2 = axisX;
-          axisY2 = axisY;
+          if (i === 0) {
+            axisX = (controllers.getAxisValue(i, 0, true) * MAXX) | 0;
+            if (axisX < (MAXX * DEAD) && axisX > -(MAXX * DEAD)) axisX = 0;
+            axisY = (controllers.getAxisValue(i, 0, false) * MAXY) | 0;
+            if (axisY < (MAXY * DEAD) && axisY > -(MAXY * DEAD)) axisY = 0;
+          }
         }
 
         if (i === 0) {
@@ -442,7 +444,7 @@ export class Emulator extends AppWrapper {
       }
     }
 
-    colemModule._EmSetInput(combined, axisX1, axisY1, axisX2, axisY2);
+    colemModule._EmSetInput(combined, axisX, axisY);
   }
 
   loadEmscriptenModule() {
@@ -588,10 +590,10 @@ export class Emulator extends AppWrapper {
 
       // Set options
       let opts = CV_SGM;
-      if (controlsMode === CONTROLS_DRIVING || controlsMode === CONTROLS_ROLLER) {
+      if (controlsMode === CONTROLS_DRIVING || controlsMode === CONTROLS_ROLLER || controlsMode === CONTROLS_SUPER_ACTION) {
         opts |= CV_SPINNER1X;
       }
-      if (controlsMode === CONTROLS_ROLLER) {
+      if (controlsMode === CONTROLS_ROLLER || controlsMode === CONTROLS_SUPER_ACTION) {
         opts |= CV_SPINNER2Y;
       }
       Module._EmSetOpts(opts);

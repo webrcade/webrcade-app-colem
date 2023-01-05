@@ -6,7 +6,7 @@ export class GamepadControlsTab extends ControlsTab {
   render() {
     return (
       <>
-        {this.renderControl('start', 'Start')}
+        {/* {this.renderControl('start', 'Start')}
         {this.renderControl('select', 'Select')}
         {this.renderControl('dpad', 'Move')}
         {this.renderControl('lanalog', 'Move')}
@@ -15,7 +15,7 @@ export class GamepadControlsTab extends ControlsTab {
         {this.renderControl('y', 'X')}
         {this.renderControl('x', 'Y')}
         {this.renderControl('lbump', 'Left Shoulder')}
-        {this.renderControl('rbump', 'Right Shoulder')}
+        {this.renderControl('rbump', 'Right Shoulder')} */}
       </>
     );
   }
@@ -25,7 +25,7 @@ export class KeyboardControlsTab extends ControlsTab {
   render() {
     return (
       <>
-        {this.renderKey('Enter', 'Start')}
+        {/* {this.renderKey('Enter', 'Start')}
         {this.renderKey('ShiftRight', 'Select')}
         {this.renderKey('ArrowUp', 'Up')}
         {this.renderKey('ArrowDown', 'Down')}
@@ -36,7 +36,7 @@ export class KeyboardControlsTab extends ControlsTab {
         {this.renderKey('KeyS', 'X')}
         {this.renderKey('KeyA', 'Y')}
         {this.renderKey('KeyQ', 'Left Shoulder')}
-        {this.renderKey('KeyW', 'Right Shoulder')}
+        {this.renderKey('KeyW', 'Right Shoulder')} */}
       </>
     );
   }
