@@ -40,13 +40,13 @@
     margin-left: 2.2rem;
 
     &-button {
-      margin-top: .25rem;
+      margin-top: .5rem;
       margin-right: .2rem;
     }
   }
 
   &-first-row {
-    margin-top: 15.2rem;
+    margin-top: 15rem;
   }
 
   &-description-row {
@@ -78,9 +78,10 @@
   outline: none;
   overflow: hidden;
   opacity: .6;
+  // border: 1px solid red;
 
   &>div {
-    height: 4.5rem;
+    // height: 4.5rem;
     overflow: hidden;
     text-overflow: ellipsis;
   }
