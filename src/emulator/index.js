@@ -111,8 +111,10 @@ class ColecoKeyCodeToControlMapping extends KeyCodeToControlMapping {
       [KCODES.A]: CIDS.X,
       [KCODES.X]: CIDS.B,
       [KCODES.S]: CIDS.Y,
-      [KCODES.Q]: CIDS.LBUMP,
-      [KCODES.W]: CIDS.RBUMP,
+      [KCODES.Q]: CIDS.LTRIG,
+      [KCODES.W]: CIDS.LBUMP,
+      [KCODES.E]: CIDS.RBUMP,
+      [KCODES.R]: CIDS.RTRIG,
       [KCODES.SHIFT_RIGHT]: CIDS.SELECT,
       [KCODES.ENTER]: CIDS.START,
       [KCODES.ESCAPE]: CIDS.ESCAPE,
@@ -209,6 +211,12 @@ export class Emulator extends AppWrapper {
   JST_2P_FIREL  = JST_2P_FIREL;
   JST_RED       = JST_RED;
   JST_YELLOW    = JST_YELLOW;
+
+
+  CONTROLS_STANDARD = CONTROLS_STANDARD;
+  CONTROLS_SUPER_ACTION = CONTROLS_SUPER_ACTION
+  CONTROLS_DRIVING = CONTROLS_DRIVING;
+  CONTROLS_ROLLER = CONTROLS_ROLLER;
 
   createControllers() {
     this.keyToControlMapping = new ColecoKeyCodeToControlMapping();
