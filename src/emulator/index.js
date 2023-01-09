@@ -375,11 +375,20 @@ export class Emulator extends AppWrapper {
           input |= JST_LEFT;
         }
 
+        let kv = false;
         for (let b = 0; b < BUTTONS.length; b++) {
           const button = BUTTONS[b];
           if (controllers.isControlDown(i, button.cid)) {
             const mapping = mappings[button.button];
             if (mapping) {
+              const v = INPUTS[mapping]
+              if (v & 0x000F) {
+                if (kv) {
+                  continue;
+                } else {
+                  kv = true;
+                }
+              }
               input |= INPUTS[mapping];
             }
           }
@@ -407,7 +416,7 @@ export class Emulator extends AppWrapper {
           }
         }
 
-        if (i === 0) {
+        if (i === 0 && !(input & 0x000F)) {
           if (keyToControlMapping.isControlDown(DIGIT_0)) {
             input |= JST_0;
           } else if (keyToControlMapping.isControlDown(DIGIT_1)) {
@@ -481,7 +490,7 @@ export class Emulator extends AppWrapper {
             resolve();
           });
         } else {
-          reject('An error occurred attempting to load the mednafen engine.');
+          reject('An error occurred attempting to load the Coleco engine.');
         }
       };
     });
