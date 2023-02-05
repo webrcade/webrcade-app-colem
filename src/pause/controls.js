@@ -132,7 +132,7 @@ export class KeyboardControlsTab extends ControlsTab {
 
     return (
       <>
-        {this.renderKey('Enter', 'Toggle Keypad Display')}
+        {this.renderKey('Enter', 'Show Keypad')}
         {this.renderKey('ArrowUp', 'Joystick Up')}
         {this.renderKey('ArrowDown', 'Joystick Down')}
         {this.renderKey('ArrowLeft', 'Joystick Left')}
