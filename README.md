@@ -8,7 +8,7 @@ The underlying emulator is a [modified version](https://github.com/raz0red/wiico
 
 <p align="center">
  <a href="https://play.webrcade.com">
-  <img src="https://docs.webrcade.com/assets/images/apps/coleco.png" width="90%">
+  <img src="https://docs.webrcade.com/assets/images/apps/colecovision.png" width="90%">
  </a>
  <br>
  <i>Caos Begins by Antoni Burguera</i>
@@ -16,7 +16,7 @@ The underlying emulator is a [modified version](https://github.com/raz0red/wiico
 
 ## Documentation
 
-The [Nintendo Entertainment System Application Documentation](https://docs.webrcade.com/apps/emulators/nes/) includes [keyboard](https://docs.webrcade.com/apps/emulators/nes/#keyboard) and [gamepad](https://docs.webrcade.com/apps/emulators/nes/#gamepad) control mappings, information related to [battery-backed SRAM](https://docs.webrcade.com/apps/emulators/nes/#battery-backed-sram) support, and details regarding the use of the emulator within a [webЯcade feed](https://docs.webrcade.com/apps/emulators/nes/#feed). 
+The [ColecoVision Application Documentation](https://docs.webrcade.com/apps/emulators/colecovision/) includes [keyboard](https://docs.webrcade.com/apps/emulators/colecovision/#keyboard) and [gamepad](https://docs.webrcade.com/apps/emulators/colecovision/#gamepad) control mappings, and details regarding the use of the emulator within a [webЯcade feed](https://docs.webrcade.com/apps/emulators/colecovision/#feed). 
 
 ## LICENSE
 
@@ -28,4 +28,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ---
 
-The license presented above is limited to the Nintendo Entertainment System application for [webЯcade](https://www.webrcade.com). The underlying [em-fceux](https://bitbucket.org/tsone/em-fceux/src/master/) and [FCEUX](https://github.com/TASVideos/fceux/) projects retain their own specific licensing.
+The license presented above is limited to the ColecoVision application for [webЯcade](https://www.webrcade.com). The underlying [ColEm](https://fms.komkon.org/ColEm/) project retains its own specific licensing.
