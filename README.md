@@ -4,7 +4,7 @@
 
 The ColecoVision application for [webЯcade](https://www.webrcade.com) is an emulator for the [ColecoVision](https://en.wikipedia.org/wiki/ColecoVision) game console.
 
-The underlying emulator is a [modified version](https://github.com/raz0red/wiicolem/tree/webrcadex) of [ColEm](https://fms.komkon.org/ColEm/) by Marat Fayzullin.
+The underlying emulator is a [modified version](https://github.com/raz0red/wiicolem/tree/webrcade) of [ColEm](https://fms.komkon.org/ColEm/) by Marat Fayzullin.
 
 <p align="center">
  <a href="https://play.webrcade.com">
