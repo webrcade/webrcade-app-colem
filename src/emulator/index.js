@@ -212,11 +212,14 @@ export class Emulator extends AppWrapper {
   JST_RED       = JST_RED;
   JST_YELLOW    = JST_YELLOW;
 
-
   CONTROLS_STANDARD = CONTROLS_STANDARD;
   CONTROLS_SUPER_ACTION = CONTROLS_SUPER_ACTION
   CONTROLS_DRIVING = CONTROLS_DRIVING;
   CONTROLS_ROLLER = CONTROLS_ROLLER;
+
+  getDefaultAspectRatio() {
+    return 1.333;
+  }
 
   createControllers() {
     this.keyToControlMapping = new ColecoKeyCodeToControlMapping();
@@ -521,7 +524,7 @@ export class Emulator extends AppWrapper {
           this.saveStatePrefix, slot, s,
           this.canvas,
           this.saveMessageCallback, null,
-          {aspectRatio: "1.333"});
+          {aspectRatio: "" + this.getDefaultAspectRatio()});
       }
     } catch (e) {
       LOG.error('Error saving state: ' + e);
