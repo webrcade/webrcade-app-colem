@@ -1,4 +1,5 @@
 import {
+  achievements,
   AppWrapper,
   Controller,
   Controllers,
@@ -6,6 +7,10 @@ import {
   FetchAppData,
   KeyCodeToControlMapping,
   ScriptAudioProcessor,
+  showAchievement,
+  showMastery,
+  showGamePlacard,
+  settings,
   Unzip,
   VisibilityChangeMonitor,
   CIDS,
@@ -243,6 +248,8 @@ export class Emulator extends AppWrapper {
     });
   }
 
+  getHashFileExtension() { return 'col'; }
+
   setRom(name, bytes, md5) {
     if (bytes.byteLength === 0) {
       throw new Error('The size is invalid (0 bytes).');
@@ -254,6 +261,18 @@ export class Emulator extends AppWrapper {
 
     LOG.info('name: ' + this.romName);
     LOG.info('md5: ' + this.romMd5);
+  }
+
+  async raHttpRequest(reqId, url, postData) {
+    const { colemModule } = this;
+    await achievements.httpRequest(colemModule, reqId, url, postData);
+  }
+
+  onRaAchievementTriggered(id) {
+    const ach = achievements.getAchievements().find(a => a.id === id);
+    if (ach) {
+      showAchievement(ach.title, ach.description, ach.badgeName);
+    }
   }
 
   async onShowPauseMenu() {
@@ -618,8 +637,32 @@ export class Emulator extends AppWrapper {
       }
       Module._EmSetOpts(opts);
 
+      // Initialize RetroAchievements
+      if (settings.isRaEnabled() && achievements.isLoggedIn()) {
+        achievements.resetGameState();
+        achievements.setUnlockCallback((title, desc, badge) => {
+          showAchievement(title, desc, badge);
+        });
+        achievements.setMasteryCallback((gameTitle, gameBadgeName, totalCount, totalPoints, username, gameTags) => {
+          showMastery(gameTitle, gameBadgeName, totalCount, totalPoints, username, gameTags);
+        });
+        achievements.setGameLoadedCallback((gameTitle, gameBadgeName, unlockedCount, totalCount, unlockedPoints, totalPoints, gameTags) => {
+          showGamePlacard(gameTitle, gameBadgeName, unlockedCount, totalCount, unlockedPoints, totalPoints, gameTags);
+        });
+        Module._EmCheevosInit();
+        Module.ccall('EmCheevosLogin', null,
+          ['string', 'string'],
+          [achievements.getUsername(), achievements.getToken()]
+        );
+      }
+
       // Start the emulator
       Module._EmStart();
+
+      // Load game for achievements (C will queue if login not yet complete)
+      if (settings.isRaEnabled() && achievements.isLoggedIn()) {
+        Module.ccall('EmCheevosLoadGame', null, ['string'], [this.romMd5]);
+      }
 
       // frame step method
       const frame = Module._EmStep;
@@ -638,9 +681,11 @@ export class Emulator extends AppWrapper {
       let audioStarted = 0;
 
       // Start the display loop
+      const cheevosFrame = settings.isRaEnabled() && achievements.isLoggedIn() ? Module._EmCheevosFrame : null;
       this.displayLoop.start(() => {
         this.pollControls();
         frame();
+        if (cheevosFrame) cheevosFrame();
 
         if (audioStarted !== -1) {
           if (audioStarted > 1) {

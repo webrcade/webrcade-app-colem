@@ -4,10 +4,13 @@ import { Component } from 'react';
 import { GamepadControlsTab, KeyboardControlsTab } from './controls';
 
 import {
+  achievements,
+  AchievementsScreen,
   AppSettingsEditor,
   ColecoVisionBackground,
   CustomPauseScreen,
   EditorScreen,
+  EmojiEventsWhiteImage,
   GamepadWhiteImage,
   KeyboardWhiteImage,
   PauseScreenButton,
@@ -33,9 +36,11 @@ export class EmulatorPauseScreen extends Component {
     CONTROLS: 'controls',
     SETTINGS: 'coleco-settings',
     STATE: 'state',
+    ACHIEVEMENTS: 'achievements',
   };
 
   ADDITIONAL_BUTTON_REFS = [React.createRef(), React.createRef(), React.createRef()];
+  SECONDARY_BUTTON_REFS = [React.createRef()];
 
   componentDidMount() {
     const { loaded } = this.state;
@@ -55,7 +60,7 @@ export class EmulatorPauseScreen extends Component {
   }
 
   render() {
-    const { ADDITIONAL_BUTTON_REFS, ModeEnum } = this;
+    const { ADDITIONAL_BUTTON_REFS, SECONDARY_BUTTON_REFS, ModeEnum } = this;
     const { appProps, closeCallback, emulator, exitCallback, isEditor, isStandalone } = this.props;
     const { cloudEnabled, loaded, mode } = this.state;
 
@@ -104,6 +109,29 @@ export class EmulatorPauseScreen extends Component {
       );
     }
 
+    const secondaryButtons = [];
+    let secondaryRefIdx = 0;
+
+    if (achievements.isLoggedIn() && achievements.hasAchievements()) {
+      const achievementsRef = SECONDARY_BUTTON_REFS[secondaryRefIdx++];
+      secondaryButtons.push(
+        <PauseScreenButton
+          key="achievements"
+          imgSrc={EmojiEventsWhiteImage}
+          buttonRef={achievementsRef}
+          label="Achievements"
+          onHandlePad={(focusGrid, e) =>
+            focusGrid.moveFocus(e.type, achievementsRef)
+          }
+          onClick={() => {
+            this.setState({ mode: ModeEnum.ACHIEVEMENTS });
+          }}
+        />
+      );
+    }
+
+    const usedSecondaryRefs = SECONDARY_BUTTON_REFS.slice(0, secondaryRefIdx);
+
     return (
       <>
         {mode === ModeEnum.PAUSE ? (
@@ -115,6 +143,8 @@ export class EmulatorPauseScreen extends Component {
             isStandalone={isStandalone}
             additionalButtonRefs={ADDITIONAL_BUTTON_REFS}
             additionalButtons={additionalButtons}
+            secondaryButtonRefs={usedSecondaryRefs}
+            secondaryButtons={secondaryButtons}
           />
         ) : null}
         {mode === ModeEnum.CONTROLS ? (
@@ -146,6 +176,11 @@ export class EmulatorPauseScreen extends Component {
             emulator={emulator}
             onClose={closeCallback}
             showStatusCallback={emulator.saveMessageCallback}
+          />
+        ) : null}
+        {mode === ModeEnum.ACHIEVEMENTS ? (
+          <AchievementsScreen
+            onClose={closeCallback}
           />
         ) : null}
       </>
