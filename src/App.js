@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   blobToStr,
   md5,
@@ -8,6 +10,7 @@ import {
   AchievementToast,
   GamePlacard,
   FetchAppData,
+  RadialKeypad,
   Resources,
   Unzip,
   UrlUtil,
@@ -19,13 +22,69 @@ import {
 import { ControllersScreen } from './controllers';
 import { Emulator } from './emulator';
 import { EmulatorPauseScreen } from './pause';
+import { TouchOverlay } from './touchoverlay';
 
 import './App.scss';
+
+// Clockwise from the top -- the grid keypad screen's own 4x3 layout
+// ([1,2,3],[4,5,6],[7,8,9],[*,0,#]) flattened row-major onto the ring,
+// so each row starts exactly on a clock cardinal: 1 at 12 o'clock, 4 at
+// 3 o'clock, 7 at 6 o'clock, * at 9 o'clock. Matches spatial memory of
+// the real controller's grid better than a plain 1-9,0,*,# count.
+const RADIAL_KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
+
+// Maps a key label to the numeric input value the emulator expects
+// (emulator.JST_1, etc. -- see emulator/index.js), the same values the
+// grid keypad screen (controllers/index.js) sends via onSelect/onKeypad.
+// Passed to the shared RadialKeypad component as its keyToValue prop.
+const RADIAL_KEY_TO_VALUE = {
+  "1": "JST_1", "2": "JST_2", "3": "JST_3", "4": "JST_4",
+  "5": "JST_5", "6": "JST_6", "7": "JST_7", "8": "JST_8",
+  "9": "JST_9", "0": "JST_0", "*": "JST_STAR", "#": "JST_POUND",
+};
 
 class App extends WebrcadeApp {
   emulator = null;
 
   CONTROLLERS_MODE = "controllers";
+
+  radialKeypadRef = React.createRef();
+
+  constructor() {
+    super();
+    this.state = {
+      ...this.state,
+      showCanvas: false,
+    };
+  }
+
+  // Called once by Emulator.onStart() -- gates the upper-right touch
+  // overlay (keypad/pause icons) so it doesn't render before the
+  // emulator itself exists, same as Apple II/melonDS/Jaguar.
+  showCanvas() {
+    this.setState({ showCanvas: true });
+  }
+
+  // Called once per frame per controller from Emulator.pollControls() --
+  // forwarded straight through as an imperative call (not setState) so
+  // the update happens synchronously in the same frame, with no extra
+  // polling or animation loop of its own.
+  updateRadialStick(controller, x, y, confirmDown) {
+    const { current } = this.radialKeypadRef;
+    if (current) current.updateStick(controller, x, y, confirmDown);
+  }
+
+  // Called from Emulator.onPause() the instant pause starts (covers both
+  // the real pause menu and the grid keypad screen -- both trigger via
+  // the same pause(true) call). Needed because pausing only stops
+  // updateRadialStick() from being called again going forward; it does
+  // nothing about a ring that's already open at that exact moment, which
+  // would otherwise stay frozen visible behind the screen that just
+  // opened.
+  hideRadialKeypad() {
+    const { current } = this.radialKeypadRef;
+    if (current) current.hide();
+  }
 
   componentDidMount() {
     super.componentDidMount();
@@ -160,7 +219,13 @@ class App extends WebrcadeApp {
     return (
       <ControllersScreen
         controllerIndex={controllerIndex}
-        onSelect={(key, keyCode) => {emulator.onKeypad(controllerIndex, key, keyCode)}}
+        initialRow={this.lastKeyRow}
+        initialCol={this.lastKeyCol}
+        onSelect={(key, r, c, keyCode) => {
+          this.lastKeyRow = r;
+          this.lastKeyCol = c;
+          emulator.onKeypad(controllerIndex, key, keyCode);
+        }}
         closeCallback={() => { this.resume(CONTROLLERS_MODE) }}
         descriptions={descriptions}
         emulator={emulator}
@@ -202,8 +267,8 @@ class App extends WebrcadeApp {
   }
 
   render() {
-    const { mode } = this.state;
-    const { ModeEnum, CONTROLLERS_MODE } = this;
+    const { mode, showCanvas } = this.state;
+    const { ModeEnum, CONTROLLERS_MODE, emulator, descriptions } = this;
 
     return (
       <>
@@ -216,6 +281,14 @@ class App extends WebrcadeApp {
           : null}
         <AchievementToast />
         <GamePlacard />
+        <TouchOverlay show={showCanvas} />
+        <RadialKeypad
+          ref={this.radialKeypadRef}
+          emulator={emulator}
+          descriptions={descriptions}
+          keys={RADIAL_KEYS}
+          keyToValue={RADIAL_KEY_TO_VALUE}
+        />
       </>
     );
   }

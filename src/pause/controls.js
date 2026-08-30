@@ -96,11 +96,13 @@ export class GamepadControlsTab extends ControlsTab {
     return (
       <>
         {this.renderControl('start', 'Toggle Keypad Display')}
+        {this.renderControls('ltrig', 'ranalog', 'Toggle Keypad Display')}
         {isRoller && this.renderControl('lanalog', 'Roller')}
         {isDriving && this.renderControl('lanalog', 'Steer')}
         {!isDriving && !isRoller && this.renderControl('lanalog', 'Joystick')}
         {this.renderControl('dpad', 'Joystick')}
         {isSuper && this.renderControl('ranalog', 'Spinner')}
+        {!isSuper && this.renderControl('ranalog', 'Radial Keypad')}
         {aName && this.renderControl('a', aName)}
         {bName && this.renderControl('b', bName)}
         {xName && this.renderControl('x', xName)}
@@ -133,6 +135,7 @@ export class KeyboardControlsTab extends ControlsTab {
     return (
       <>
         {this.renderKey('Enter', 'Show Keypad')}
+        {this.renderKey('ControlLeft', 'Show Keypad')}
         {this.renderKey('ArrowUp', 'Joystick Up')}
         {this.renderKey('ArrowDown', 'Joystick Down')}
         {this.renderKey('ArrowLeft', 'Joystick Left')}
