@@ -302,7 +302,11 @@ export class ControllersScreen extends Screen {
       this.setState({row: newRow, col: newCol});
     }
 
-    if (e.type === GamepadEnum.ESC || e.type === GamepadEnum.START) {
+    // WRC - per docs/control-mapping-audit.md's GRP3 target, Select opens
+    // this screen (see emulator/index.js's pollControls()), so Select
+    // should toggle-close it too, not Start - this used to be
+    // GamepadEnum.START, when Start was the button that opened it.
+    if (e.type === GamepadEnum.ESC || e.type === GamepadEnum.SELECT) {
       this.close();
     }
   }
@@ -317,15 +321,20 @@ export class ControllersScreen extends Screen {
     // first repeat would hit the toggle-close check below.
     if (e.repeat) return;
 
-    // Control toggles this screen closed (see emulator/index.js's
-    // pollControls(), where the initial *open* happens only after Control
-    // is released -- by the time this screen is mounted, Control is always
-    // already up, so any keydown seen here is a genuine new press). This
+    // Control or Shift-Right toggles this screen closed (see
+    // emulator/index.js's pollControls(), where the initial *open* happens
+    // only after the trigger key is released -- by the time this screen is
+    // mounted, it's always already up, so any keydown seen here is a
+    // genuine new press). Shift-Right is CIDS.SELECT's own keyboard
+    // mapping (per docs/control-mapping-audit.md's "SL/RT+LA/Shift-R"),
+    // which now opens this screen the same way Control does - added here
+    // so it can also close it, matching gamepad Select/RT+LA. This
     // listener is attached directly to document for as long as this screen
     // is mounted, independent of controllers.setEnabled()/the paused
-    // display loop, so it works even though the emulator's own Control
-    // handling can't run while paused.
-    if (e.code === KCODES.CONTROL_LEFT || e.code === KCODES.CONTROL_RIGHT) {
+    // display loop, so it works even though the emulator's own Control/
+    // Select handling can't run while paused.
+    if (e.code === KCODES.CONTROL_LEFT || e.code === KCODES.CONTROL_RIGHT ||
+      e.code === KCODES.SHIFT_RIGHT) {
       this.close();
       return;
     }
@@ -406,6 +415,20 @@ export class ControllersScreen extends Screen {
     const { onSelect } = this.props;
     onSelect(key, row, col, false);
     this.close();
+  }
+
+  // WRC - overrides Screen's base close() (which just calls
+  // closeCallback() with no args) so every close path - not just an
+  // actual key selection via onSelectFunc above - reports the current
+  // cursor position back to App.js's lastKeyRow/lastKeyCol. Without this,
+  // canceling out (Select/ESC/Control) after navigating around without
+  // picking a key would silently discard that navigation, and the keypad
+  // would reopen at the last *selected* key instead of the last
+  // *visited* one.
+  close() {
+    const { row, col } = this.state;
+    const { closeCallback } = this.props;
+    if (closeCallback) closeCallback(row, col);
   }
 
   render() {

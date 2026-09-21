@@ -226,7 +226,19 @@ class App extends WebrcadeApp {
           this.lastKeyCol = c;
           emulator.onKeypad(controllerIndex, key, keyCode);
         }}
-        closeCallback={() => { this.resume(CONTROLLERS_MODE) }}
+        closeCallback={(r, c) => {
+          // WRC - closing without picking a key (cancel) used to leave
+          // lastKeyRow/lastKeyCol at wherever the last actual selection
+          // was, not wherever the cursor was just navigated to - reopening
+          // the keypad would jump back to the old selection instead of
+          // where the player had last been looking. ControllersScreen's
+          // close() now always passes its current row/col here.
+          if (r !== undefined && c !== undefined) {
+            this.lastKeyRow = r;
+            this.lastKeyCol = c;
+          }
+          this.resume(CONTROLLERS_MODE);
+        }}
         descriptions={descriptions}
         emulator={emulator}
       />

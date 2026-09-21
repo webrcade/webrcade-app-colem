@@ -622,10 +622,14 @@ export class Emulator extends AppWrapper {
           }
         }
 
-        if (controllers.isControlDown(i, CIDS.START)) {
+        // WRC - per docs/control-mapping-audit.md's GRP3 target: Select
+        // opens the keypad (ColecoVision has no physical Start button, so
+        // Start is read but produces no defined function) - this used to
+        // be on CIDS.START instead, fixed to match the doc and retro-a5200.
+        if (controllers.isControlDown(i, CIDS.SELECT)) {
           if (this.pause(true)) {
             controllers
-              .waitUntilControlReleased(i, CIDS.START)
+              .waitUntilControlReleased(i, CIDS.SELECT)
               .then(() => this.showControllers(i));
             return;
           }
