@@ -107,6 +107,7 @@ export class Controller extends Component {
         style={{
           backgroundImage: "url(" + ColecoController + ")",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="controller-row controller-first-row">
           <div className="controller-row-button">
@@ -253,7 +254,15 @@ export class ControllersScreen extends Screen {
     docElement.addEventListener("keydown", this.handleKeyDownEvent);
 
     if (controllerIndex === null) {
-      this.setState({controllerIndex: this.props.controllerIndex});
+      this.setState({
+        controllerIndex: this.props.controllerIndex,
+        // Falls back to the constructor's own -1/-1 (no initial focus)
+        // when not provided, matching existing behavior -- only overrides
+        // it when the caller passes a remembered position (see App.js's
+        // lastKeyRow/lastKeyCol, set from onSelect on the previous close).
+        row: this.props.initialRow !== undefined ? this.props.initialRow : -1,
+        col: this.props.initialCol !== undefined ? this.props.initialCol : -1,
+      });
     }
   }
 
@@ -293,7 +302,11 @@ export class ControllersScreen extends Screen {
       this.setState({row: newRow, col: newCol});
     }
 
-    if (e.type === GamepadEnum.ESC || e.type === GamepadEnum.START) {
+    // WRC - per docs/control-mapping-audit.md's GRP3 target, Select opens
+    // this screen (see emulator/index.js's pollControls()), so Select
+    // should toggle-close it too, not Start - this used to be
+    // GamepadEnum.START, when Start was the button that opened it.
+    if (e.type === GamepadEnum.ESC || e.type === GamepadEnum.SELECT) {
       this.close();
     }
   }
@@ -301,6 +314,30 @@ export class ControllersScreen extends Screen {
   handleKeyDownEvent = (e) => {
     const { controllerIndex, row, col } = this.state;
     const { emulator, onSelect } = this.props;
+
+    // Ignore OS auto-repeat. Holding Control a moment too long after a
+    // fresh press fires additional native keydown events for the same
+    // still-held key (e.repeat === true); without this guard the very
+    // first repeat would hit the toggle-close check below.
+    if (e.repeat) return;
+
+    // Control or Shift-Right toggles this screen closed (see
+    // emulator/index.js's pollControls(), where the initial *open* happens
+    // only after the trigger key is released -- by the time this screen is
+    // mounted, it's always already up, so any keydown seen here is a
+    // genuine new press). Shift-Right is CIDS.SELECT's own keyboard
+    // mapping (per docs/control-mapping-audit.md's "SL/RT+LA/Shift-R"),
+    // which now opens this screen the same way Control does - added here
+    // so it can also close it, matching gamepad Select/RT+LA. This
+    // listener is attached directly to document for as long as this screen
+    // is mounted, independent of controllers.setEnabled()/the paused
+    // display loop, so it works even though the emulator's own Control/
+    // Select handling can't run while paused.
+    if (e.code === KCODES.CONTROL_LEFT || e.code === KCODES.CONTROL_RIGHT ||
+      e.code === KCODES.SHIFT_RIGHT) {
+      this.close();
+      return;
+    }
 
     if (e.code === KCODES.SPACE_BAR || e.code === KCODES.ENTER) {
       const keys = [
@@ -321,7 +358,7 @@ export class ControllersScreen extends Screen {
       if (controllerIndex === 0) {
         if (row >= 0 && col >= 0) {
             this.close();
-            onSelect(keys[row * 3 + col], e.code);
+            onSelect(keys[row * 3 + col], row, col, e.code);
         } else if (e.code === KCODES.ENTER) {
           this.close();
         }
@@ -374,9 +411,24 @@ export class ControllersScreen extends Screen {
   }
 
   onSelectFunc(key) {
+    const { row, col } = this.state;
     const { onSelect } = this.props;
-    onSelect(key, false);
+    onSelect(key, row, col, false);
     this.close();
+  }
+
+  // WRC - overrides Screen's base close() (which just calls
+  // closeCallback() with no args) so every close path - not just an
+  // actual key selection via onSelectFunc above - reports the current
+  // cursor position back to App.js's lastKeyRow/lastKeyCol. Without this,
+  // canceling out (Select/ESC/Control) after navigating around without
+  // picking a key would silently discard that navigation, and the keypad
+  // would reopen at the last *selected* key instead of the last
+  // *visited* one.
+  close() {
+    const { row, col } = this.state;
+    const { closeCallback } = this.props;
+    if (closeCallback) closeCallback(row, col);
   }
 
   render() {
@@ -407,7 +459,7 @@ export class ControllersScreen extends Screen {
       <>
         <WebrcadeContext.Provider value={screenContext}>
           <div className={screenStyles['screen-transparency']} />
-          <div className={"controllers-screen"}>
+          <div className={"controllers-screen"} onClick={() => this.close()}>
             <div className={'controllers-screen-inner ' + screenStyles.screen}>
               <div className={"controllers-screen-inner-controllers"}>
                 {controllerIndex === 0 ? controller : <div/>}
